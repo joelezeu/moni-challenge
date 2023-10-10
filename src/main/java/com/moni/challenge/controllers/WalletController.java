@@ -1,6 +1,7 @@
 package com.moni.challenge.controllers;
 
 import com.moni.challenge.domain.FundWalletRequest;
+import com.moni.challenge.domain.TransferFundsRequest;
 import com.moni.challenge.services.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,5 +20,9 @@ public class WalletController {
     @PostMapping("/fund-wallet")
     public ResponseEntity<?> fundWallet(@RequestBody FundWalletRequest fundWalletRequest) {
         return walletService.fundWallet(fundWalletRequest);
+    }
+    @PostMapping("/transfer-funds")
+    public ResponseEntity<?> transferFunds(@RequestBody TransferFundsRequest transferFundsRequest){
+        return walletService.transferFunds(transferFundsRequest);
     }
 }

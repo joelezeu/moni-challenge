@@ -12,26 +12,16 @@ import java.util.Objects;
 @ToString
 @RequiredArgsConstructor
 @Entity
-public class Transaction {
+public class RequestFund {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(unique = true)
-    private String reference;
-
+    @Column
+    private String recipient;
     @Column
     private BigDecimal amount;
-
     @Enumerated(EnumType.STRING)
-    private TransactionType transactionType;
-
-    @Column
-    private String narration;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    private RequestFundStatus status;
 
     @Override
     public final boolean equals(Object o) {
@@ -40,7 +30,7 @@ public class Transaction {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        Transaction that = (Transaction) o;
+        RequestFund that = (RequestFund) o;
         return getId() != null && Objects.equals(getId(), that.getId());
     }
 

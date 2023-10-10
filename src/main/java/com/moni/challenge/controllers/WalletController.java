@@ -25,4 +25,8 @@ public class WalletController {
     public ResponseEntity<?> transferFunds(@RequestBody TransferFundsRequest transferFundsRequest){
         return walletService.transferFunds(transferFundsRequest);
     }
+    @PostMapping("/request-funds")
+    public ResponseEntity<?> requestFunds(FundWalletRequest fundWalletRequest){
+        return walletService.requestFunds(fundWalletRequest);
+    }
 }

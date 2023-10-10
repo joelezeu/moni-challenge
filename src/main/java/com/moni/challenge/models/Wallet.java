@@ -16,9 +16,11 @@ public class Wallet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column
     private BigDecimal balance;
     @Column(unique = true)
     private String reference;
+    @Column
     private BigDecimal previousBalance;
     @ManyToOne
     @JoinColumn(name = "user_id")

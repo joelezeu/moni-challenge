@@ -4,8 +4,11 @@ import com.moni.challenge.domain.FundWalletRequest;
 import com.moni.challenge.domain.TransferFundsRequest;
 import com.moni.challenge.domain.dto.Response;
 import com.moni.challenge.exceptions.ChallengeException;
+import com.moni.challenge.models.RequestFund;
+import com.moni.challenge.models.RequestFundStatus;
 import com.moni.challenge.models.User;
 import com.moni.challenge.models.Wallet;
+import com.moni.challenge.repositories.RequestFundRepository;
 import com.moni.challenge.repositories.UserRepository;
 import com.moni.challenge.repositories.WalletRepository;
 import com.moni.challenge.utils.ResponseUtils;
@@ -23,6 +26,7 @@ public class WalletService {
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final ResponseUtils responseUtils;
+    private final RequestFundRepository requestFundRepository;
 
     public ResponseEntity<Response> fundWallet(FundWalletRequest fundWalletRequest) {
         String phoneNumber = fundWalletRequest.getPhoneNumber();
@@ -99,7 +103,33 @@ public class WalletService {
 
         walletRepository.save(walletDr);
 
+        //Log Transactions.
+
         return responseUtils.getResponse(true, "Funds Transfer Successful");
 
+    }
+
+    public ResponseEntity<Response> requestFunds(FundWalletRequest fundWalletRequest) {
+        Optional<User> creditOptional = userRepository.findByPhoneNumber(fundWalletRequest.getPhoneNumber());
+        if (creditOptional.isEmpty()) {
+            throw new ChallengeException("Credit account not found", HttpStatus.NOT_FOUND);
+        }
+        User user = creditOptional.get();
+        Optional<Wallet> creditWalletOptional = walletRepository.findByUser(creditOptional.get());
+        if (creditWalletOptional.isEmpty()) {
+            throw new ChallengeException("Credit Wallet not found", HttpStatus.NOT_FOUND);
+        }
+
+        RequestFund requestFund = new RequestFund();
+        requestFund.setAmount(fundWalletRequest.getAmount());
+        requestFund.setRecipient(user.getPhoneNumber());
+        requestFund.setStatus(RequestFundStatus.PENDING);
+
+        requestFundRepository.save(requestFund);
+
+
+        String paymentLink = "http://link_to_share.com";
+
+        return responseUtils.getResponse(true, "Kindly use this link to credit your account " + paymentLink);
     }
 }

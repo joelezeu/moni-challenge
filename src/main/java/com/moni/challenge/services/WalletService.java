@@ -13,6 +13,7 @@ import com.moni.challenge.repositories.UserRepository;
 import com.moni.challenge.repositories.WalletRepository;
 import com.moni.challenge.utils.ResponseUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WalletService {
@@ -47,9 +49,9 @@ public class WalletService {
                 throw new ChallengeException("Wallet not found", HttpStatus.NOT_FOUND);
             }
             Wallet wallet = walletOptional.get();
+            wallet.setPreviousBalance(wallet.getBalance());
             wallet.setBalance(fundWalletRequest.getAmount());
             wallet.setUser(user);
-            wallet.setPreviousBalance(wallet.getBalance());
             wallet.setReference(fundWalletRequest.getReference());
 
             walletRepository.save(wallet);
@@ -79,29 +81,30 @@ public class WalletService {
             throw new ChallengeException("Credit Wallet not found", HttpStatus.NOT_FOUND);
         }
 
-        Wallet walletCr = creditWalletOptional.get();
-        if (walletCr.getBalance().compareTo(amount) < 0) {
-            throw new ChallengeException("Insufficient Balance", HttpStatus.EXPECTATION_FAILED);
-        }
-
         Optional<Wallet> deditWalletOptional = walletRepository.findByUser(deditUser);
         if (deditWalletOptional.isEmpty()) {
             throw new ChallengeException("Debit Wallet not found", HttpStatus.NOT_FOUND);
         }
 
         Wallet walletDr = deditWalletOptional.get();
+        if (walletDr.getBalance().compareTo(amount) < 0) {
+            throw new ChallengeException("Insufficient Balance", HttpStatus.EXPECTATION_FAILED);
+        }
 
-        BigDecimal creditBalance = walletCr.getBalance().subtract(amount);
-        walletCr.setBalance(creditBalance);
-        walletCr.setPreviousBalance(walletCr.getBalance());
-
-        walletRepository.save(walletCr);
-
-        BigDecimal debitBalance = walletDr.getBalance().add(amount);
-        walletDr.setBalance(debitBalance);
+        BigDecimal creditBalance = walletDr.getBalance().subtract(amount);
         walletDr.setPreviousBalance(walletDr.getBalance());
+        walletDr.setBalance(creditBalance);
 
         walletRepository.save(walletDr);
+
+        Wallet walletCr = creditWalletOptional.get();
+
+        BigDecimal debitBalance = walletCr.getBalance().add(amount);
+        walletCr.setPreviousBalance(walletCr.getBalance());
+        walletCr.setBalance(debitBalance);
+
+
+        walletRepository.save(walletCr);
 
         //Log Transactions.
 

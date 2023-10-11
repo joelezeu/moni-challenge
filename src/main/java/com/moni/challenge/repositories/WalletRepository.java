@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.LockModeType;
+import javax.transaction.Transactional;
 import java.util.Optional;
 
+@Transactional
 @Repository
 public interface WalletRepository extends JpaRepository<Wallet, Long> {
 
